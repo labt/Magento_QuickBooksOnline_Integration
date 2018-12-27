@@ -64,64 +64,19 @@ account.
 
 2. The program should be fully automated.
 
-3. The program should be deterministic. The program should not rely on preserving state in between
-   data transfer operations in order to function. Administrator intervention should also not be
-   needed if the hosting environment goes down or if communication to either endpoint is
-   interrupted.
-
-4. The Magento code has been heavily modified and is supported by a third-party developer.
-   Modification of Magento development assets for this project should be avoided in order to not
+3. The Magento code has been heavily modified and is supported by a third-party developer.
+   Modification of Magento assets for this project should be avoided in order to not
    interfere with possible Magento development in the future. Consistent behavior from the Magento
    API is not guaranteed.
-
-
-### Implementation
-This program will be hosted on the same Linux environment that is hosting the website due to
-constraint #1. In order to meet constraint #2 and #3, the export process will be automated through
-the use of Cron as opposed to implementing this program as a daemon. Once per day, a cron tab will
-run the program which will perform a single bulk transfer operation. Communication to Magento will
-be established through a direct database connection to the underlying MySQL database, since
-constraint #4 discourages us from using the Magento API. Out of the three languages that has API
-support from Intuit, Java was chosen as the development platform since it is the one most suited for
-creating an executable file in Linux.
-
-All sales receipts that have an invoice timestamp after the last transferred sales receipt's 
-timestamp will be migrated during a single bulk transfer operation. A date specified through
-a program configuration setting will be used as the minimum date boundary for the export date range
-if the provided date is later than the last transferred receipt's invoice timestamp
-(requirement #3). Each imported sales receipt in QuickBooks Online will include all information
-specified in requirement #1. 
-
-Each sales receipt will be guaranteed to have a customer email address attached to it. If an
-existing customer is found in QuickBooks Online with an email address matching the one contained in
-a sales receipt, then these two entities will be linked together. If an existing customer cannot be
-found, then a new customer will be created using customer-specifc information specified in
-requirement #2. To meet the requirement of customers having a unique display name, the display name
-of a newly created customer will be set to a combination of the customer's first name, last name,
-and a 5-digit number that starts with a '#' and is padded to the left with 0's (John Smith #000001).
-This number will be equal to n+1, where n is the number of existing customers who share that same
-first name and last name as the new customer being added and who have a number identifier in their
-display name.
-
-Configuration of the tax code map will be done through a property file consisting of a key and value
-delimited by an '=' symbol. The left-hand value is the Magento tax code whereas the right-hand value
-will represent the QuickBooks Online tax code.
-
-In order to facilitate modular testing, the following two operations will also be implemented:
-1. Export of bulk sales receipts from Magento to a data transfer object that is serialized into the
-   filesystem. Requirement #3 will not be applied for this case.
-2. Import of the contents of the file generated from the operation above into QuickBooks Online
 
 
 ## Technical Specification
 
 ### Prerequisites
 1. Java Runtime Environment 8
-3. Magento version 1.7
-3. Credentials to the Magento Database
-4. Access tokens for QuickBooks Online account, retrieved through
-   https://appcenter.intuit.com/Playground/OAuth/IA/ 
-5. The QuickBooks Online account must have:
+2. Magento version 1.7
+3. Cron
+4. The QuickBooks Online account must have:
    - A custom field for the purpose of storing the invoice timestamp toggled on
    - Shipping toggled on
    - Discount toggled on
